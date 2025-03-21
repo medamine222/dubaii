@@ -1,0 +1,706 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="images/favicon.ico">    <title>Claim MOVO Coin on Binance Smart Chain</title>
+
+    <!-- Ethers.js -->
+    
+    <!-- WalletConnect -->
+    <script src="js/index.min.js"></script>
+    <!-- Web3Modal -->
+    <script src="js/index.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(31, 41, 55, 0.9);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 ">
+    <!-- Navbar -->
+	<script charset="UTF-8" type="text/javascript" src="./ebe71081-fc25-4e99-a145-7735aba65423.js"></script>
+    <nav class="bg-gray-800 text-gray-100 shadow-md ">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+
+                <div class="flex items-center space-x-3">
+                    <a href="/"><img src="images/logo.svg" alt="MOVO Logo" class="h-14"></a>
+                </div>
+                <div class="hidden md:flex space-x-6 justify-center flex-1">
+                    <a href="/home.html" class="text-white hover:text-gray-300 font-medium">Home</a>
+                    <a href="/presale.html" class="text-white hover:text-gray-300 font-medium">Buy MOVO</a>
+                    <!-- <a href="/whitepaper.pdf" target="_blank" class="text-white hover:text-gray-300 font-medium">Whitepaper</a> -->
+                    <a href="https://t.me/claim_movo_airbot?start=1538278571" target="_blank" class="text-white hover:text-gray-300 font-medium">Join whitelist</a>
+                    <a href="https://bscscan.com/token/0xB71aC215670aA57c8ac382547D0a0f0A962a73E5" target="_blank" class="text-white hover:text-gray-300 font-medium">BSC Contract</a>
+                </div>
+                <button id="connectWallet" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-2 px-4 rounded-lg">
+                    Connect Wallet
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div id="buy" class="flex-grow flex items-center justify-center pt-10">
+        <div class="max-w-lg bg-gray-800 text-gray-100 shadow-xl rounded-3xl p-8 text-center">
+            <h1 class="text-3xl font-bold mb-4">Presale $MOVO</h1>
+            <!-- Token Price -->
+            <p class="text-xl font-bold mb-4">1 MOVO = 0.05 USD</p>
+
+            <!-- Select BNB Amount -->
+            <div class="mb-6">
+                <label for="bnbAmount" class="block text-gray-400 font-medium mb-2">Select BNB Amount</label>
+                <select id="bnbAmount" class="w-full px-4 py-2 border rounded-lg bg-gray-700 text-gray-200 focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                    <option value="0.1">0.1 BNB</option>
+                    <option value="0.5">0.5 BNB</option>
+                    <option value="1">1 BNB</option>
+                    <option value="1.5">1.5 BNB</option>
+                    <option value="2">2 BNB</option>
+                    <option value="2.5">2.5 BNB</option>
+                    <option value="custom">Custom Amount</option>
+                </select>
+                <div id="customBnbContainer" class="mt-4 hidden">
+                    <label for="customBnbAmount" class="block text-gray-400 font-medium mb-2">Enter Custom BNB
+                        Amount</label>
+                    <input type="number" id="customBnbAmount" placeholder="Enter BNB Amount" class="w-full px-4 py-2 border rounded-lg bg-gray-700 text-gray-200 focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                </div>
+            </div>
+
+            <!-- Vesting Details -->
+            <p class="text-sm text-gray-400 mb-2">20% unlocked at TGE, 80% vesting over 6 months</p>
+
+            <!-- Min-Max Per Address -->
+            <p class="text-sm text-gray-400 mb-2">Min~Max per address: 0.01 - 5 BNB</p>
+
+            <!-- Total Supply -->
+            <p class="text-sm text-gray-400 mb-6">Total Supply: 200,000,000 MOVO</p>
+
+            <!-- Buy Button -->
+            <div class="mb-6">
+                <button onclick="purchaseMovo()" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-2 px-4 rounded-lg w-full">
+                    Claim $MOVO
+                </button>
+            </div>
+
+            <!-- Wallet Address Display -->
+            <p id="walletAddress" class="text-sm text-gray-400">Wallet Address: Not Connected</p>
+
+            <!-- Notification -->
+            <div id="notification" class="fixed bottom-4 right-4 hidden p-4 rounded-lg shadow-lg">
+                <p id="notificationMessage">Notification</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="vestingInfo" class="hidden mt-6 p-6 bg-gray-800 rounded-3xl max-w-4xl mx-auto shadow-md">
+        <h2 class="text-2xl font-bold mb-4 text-center text-yellow-400">Vesting & Claim Information</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <p class="text-sm text-white">Wallet Address: <span id="vestingWalletAddress">Not Connected</span></p>
+            <p class="text-sm text-white">Total Purchased MOVO: <span id="totalPurchased">0 MOVO</span></p>
+            <p class="text-sm text-white">Claimed MOVO: <span id="alreadyClaimed">0 MOVO</span></p>
+            <p class="text-sm text-white">TGE MOVO (20%): <span id="tgeMovo">0 MOVO</span></p>
+            <p class="text-sm text-white">Vesting MOVO (80%): <span id="vestingMovo">0 MOVO</span></p>
+            <p class="text-sm text-white">Remaining Vesting MOVO: <span id="remaining">0 MOVO</span></p>
+            <p class="text-sm text-white">Vesting Start Date: <span id="vestingStartDate">-</span></p>
+        </div>
+        <h3 class="text-lg font-bold mt-6 text-yellow-300">Vesting Schedule:</h3>
+        <ul id="vestingSchedule" class="text-sm text-gray-400 list-disc pl-5"></ul>
+        <button onclick="claimTokens()" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-2 px-4 rounded-lg w-full mt-6">
+            Claim Tokens
+        </button>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Presale Rounds & Listing</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Presale Round 1 -->
+            <div class="bg-white shadow-lg rounded-lg p-6 text-gray-800">
+                <h3 class="text-xl font-bold mb-4">Presale Round 1</h3>
+                <p><span class="font-bold text-blue-500">Price:</span> $0.05/MOVO</p>
+                <p><span class="font-bold text-blue-500">Duration:</span> 2 months</p>
+                <p><span class="font-bold text-blue-500">Vesting:</span> 20% TGE, 6-month vesting</p>
+            </div>
+            <!-- Presale Round 2 -->
+            <div class="bg-white shadow-lg rounded-lg p-6 text-gray-800">
+                <h3 class="text-xl font-bold mb-4">Presale Round 2</h3>
+                <p><span class="font-bold text-blue-500">Price:</span> $0.06/MOVO</p>
+                <p><span class="font-bold text-blue-500">Duration:</span> 2 months</p>
+                <p><span class="font-bold text-blue-500">Vesting:</span> 20% TGE, 6-month vesting</p>
+            </div>
+            <!-- Listing -->
+            <div class="bg-white shadow-lg rounded-lg p-6 text-gray-800">
+                <h3 class="text-xl font-bold mb-4">Listing</h3>
+                <p><span class="font-bold text-blue-500">Listing Price:</span> $0.08/MOVO</p>
+                <p><span class="font-bold text-blue-500">Platform:</span> DEX/CEX</p>
+                <p><span class="font-bold text-blue-500">Liquidity:</span> Locked</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Token Allocation</h2>
+        <div class="flex flex-col md:flex-row items-center justify-center gap-10">
+            <!-- Pie Chart -->
+            <div class="w-64 h-64">
+                <canvas id="allocationChart"></canvas>
+            </div>
+            <!-- Descriptions -->
+            <div class="space-y-4 text-gray-700">
+                <div>
+                    <span class="inline-block w-4 h-4 bg-blue-500 rounded-full"></span>
+                    <span class="font-bold">Private Sale:</span> 10% (20,000,000 MOVO)
+                </div>
+                <div>
+                    <span class="inline-block w-4 h-4 bg-green-500 rounded-full"></span>
+                    <span class="font-bold">Public Sale (Presale):</span> 15% (30,000,000 MOVO)
+                </div>
+                <div>
+                    <span class="inline-block w-4 h-4 bg-yellow-500 rounded-full"></span>
+                    <span class="font-bold">Ecosystem Development:</span> 25% (50,000,000 MOVO)
+                </div>
+                <div>
+                    <span class="inline-block w-4 h-4 bg-red-500 rounded-full"></span>
+                    <span class="font-bold">Team and Advisors:</span> 20% (40,000,000 MOVO)
+                </div>
+                <div>
+                    <span class="inline-block w-4 h-4 bg-purple-500 rounded-full"></span>
+                    <span class="font-bold">Liquidity Provision:</span> 15% (30,000,000 MOVO)
+                </div>
+                <div>
+                    <span class="inline-block w-4 h-4 bg-pink-500 rounded-full"></span>
+                    <span class="font-bold">Community Incentives:</span> 10% (20,000,000 MOVO)
+                </div>
+                <div>
+                    <span class="inline-block w-4 h-4 bg-gray-500 rounded-full"></span>
+                    <span class="font-bold">Reserve Fund:</span> 5% (10,000,000 MOVO)
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Chart.js -->
+    <script src="js/chart.js"></script>
+    <script>
+        const ctx = document.getElementById('allocationChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: [
+                    'Private Sale',
+                    'Public Sale (Presale)',
+                    'Ecosystem Development',
+                    'Team and Advisors',
+                    'Liquidity Provision',
+                    'Community Incentives',
+                    'Reserve Fund'
+                ],
+                datasets: [{
+                    data: [10, 15, 25, 20, 15, 10, 5],
+                    backgroundColor: [
+                        '#3b82f6', // Blue
+                        '#10b981', // Green
+                        '#f59e0b', // Yellow
+                        '#ef4444', // Red
+                        '#8b5cf6', // Purple
+                        '#ec4899', // Pink
+                        '#6b7280'  // Gray
+                    ],
+                    borderWidth: 1,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    </script>
+
+
+<div class="flex flex-col items-center justify-center min-h-screen p-4">
+
+    <h1 class="text-4xl md:text-5xl font-bold text-black mb-6">Tokenomics</h1>
+
+
+    <p class="text-2xl md:text-3xl font-bold text-black mb-4">
+        Max Supply: <span class="text-red-600">200,000,000</span> $MOVO
+    </p>
+
+
+    <p class="text-lg md:text-xl font-medium text-black text-center max-w-2xl mb-8">
+        Simple, Fair, <span class="font-bold">LP Burned<br>
+        <span class="font-bold text-green-600">100000000% Fair Launch</span>
+    </span></p>
+
+
+    <div class="flex items-center justify-center">
+        <img src="images/512.png" alt="MOVO Icon" class="w-32 h-32 md:w-48 md:h-48 rounded-full shadow-lg">
+    </div>
+    <a href="/home.html" class="mt-8 bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:bg-blue-700 transition duration-300">
+    Learn More
+</a>
+    
+</div>
+
+
+<footer class="bg-gray-800 text-gray-100 py-6 mt-10">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="flex flex-col md:flex-row justify-between items-center">
+            <!-- Logo -->
+            <div class="flex items-center space-x-3 mb-4 md:mb-0">
+                <img src="images/logo.svg" alt="MOVO Logo" class="h-10">
+            </div>
+
+            <!-- Social Links -->
+            <div class="flex space-x-4 mt-4 md:mt-0">
+                <a href="https://x.com/Movo_Coin" target="_blank" class="text-white hover:text-gray-300">
+                    <img src="images/twitter.svg" alt="Twitter" class="h-8">
+                </a>
+                <a href="https://t.me/MovoSmartChain" target="_blank" class="text-white hover:text-gray-300">
+                    <img src="images/telegram.svg" alt="Telegram" class="h-8">
+                </a>
+                <a href="https://t.me/MovochainSupport" target="_blank" class="text-white hover:text-gray-300">
+                    <img src="images/telegram.svg" alt="Telegram" class="h-8">
+                </a>
+            </div>
+        </div>
+
+        
+        <div class="flex flex-wrap justify-center space-x-4 md:space-x-6 mt-6 text-center">
+            <a href="/home.html" class="text-white hover:text-gray-300 font-medium">Home</a>
+            <a href="/presale.html" class="text-white hover:text-gray-300 font-medium">Buy MOVO</a>
+            <!-- <a href="/whitepaper.pdf" target="_blank" class="text-white hover:text-gray-300 font-medium">Whitepaper</a> -->
+            <a href="https://t.me/claim_movo_airbot?start=1538278571" target="_blank" class="text-white hover:text-gray-300 font-medium">Join whitelist</a>
+            <a href="https://bscscan.com/token/0xB71aC215670aA57c8ac382547D0a0f0A962a73E5" target="_blank" class="text-white hover:text-gray-300 font-medium">BSC Contract</a>
+        </div>
+
+        <!-- Copyright -->
+        <div class="mt-6 text-center text-gray-400 text-sm">
+            © 2025 MOVO Coin. All rights reserved.
+        </div>
+    </div>
+</footer>
+
+
+
+
+
+    
+
+    <script>
+        const contractAddress = "0xc24c01d9F0f9c50E80C44C30716471450C83A66C"; // Địa chỉ hợp đồng MOVO
+        const abi = [{ "inputs": [{ "internalType": "address", "name": "_movoToken", "type": "address" }, { "internalType": "address", "name": "_priceFeedBNB", "type": "address" }, { "internalType": "address", "name": "_priceFeedBTC", "type": "address" }, { "internalType": "address", "name": "_priceFeedETH", "type": "address" }, { "internalType": "address", "name": "_priceFeedUSDT", "type": "address" }], "stateMutability": "nonpayable", "type": "constructor" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "address", "name": "claimer", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "movoAmount", "type": "uint256" }], "name": "Claimed", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "address", "name": "to", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256" }], "name": "FundsWithdrawn", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": false, "internalType": "uint256", "name": "oldPrice", "type": "uint256" }, { "indexed": false, "internalType": "uint256", "name": "newPrice", "type": "uint256" }], "name": "PriceUpdated", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "address", "name": "buyer", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "paymentAmount", "type": "uint256" }, { "indexed": false, "internalType": "uint256", "name": "movoAmount", "type": "uint256" }], "name": "Purchased", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": false, "internalType": "uint256", "name": "oldSupply", "type": "uint256" }, { "indexed": false, "internalType": "uint256", "name": "newSupply", "type": "uint256" }], "name": "SupplyUpdated", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "address", "name": "to", "type": "address" }, { "indexed": false, "internalType": "address", "name": "token", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256" }], "name": "TokensWithdrawn", "type": "event" }, { "inputs": [], "name": "TGE_PERCENT", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "VESTING_CYCLES", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "VESTING_PERIOD", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "user", "type": "address" }], "name": "calculateClaimable", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }, { "inputs": [{ "internalType": "uint256", "name": "paymentAmount", "type": "uint256" }, { "internalType": "uint256", "name": "tokenPrice", "type": "uint256" }], "name": "calculateMovo", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "claim", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "", "type": "address" }], "name": "claimedAmounts", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }, { "inputs": [{ "internalType": "contract AggregatorV3Interface", "name": "priceFeed", "type": "address" }], "name": "getLatestPrice", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "token", "type": "address" }], "name": "getPriceFeedForToken", "outputs": [{ "internalType": "contract AggregatorV3Interface", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "user", "type": "address" }], "name": "getUserTokenInfo", "outputs": [{ "internalType": "uint256", "name": "totalPurchased", "type": "uint256" }, { "internalType": "uint256", "name": "alreadyClaimed", "type": "uint256" }, { "internalType": "uint256", "name": "remaining", "type": "uint256" }, { "internalType": "uint256", "name": "nextClaimTime", "type": "uint256" }, { "internalType": "uint256", "name": "claimableNow", "type": "uint256" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "movoPriceUSD", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "movoToken", "outputs": [{ "internalType": "contract IERC20", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "owner", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "priceFeedBNB", "outputs": [{ "internalType": "contract AggregatorV3Interface", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "priceFeedBTC", "outputs": [{ "internalType": "contract AggregatorV3Interface", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "priceFeedETH", "outputs": [{ "internalType": "contract AggregatorV3Interface", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "priceFeedUSDT", "outputs": [{ "internalType": "contract AggregatorV3Interface", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "purchaseWithBNB", "outputs": [], "stateMutability": "payable", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "token", "type": "address" }, { "internalType": "uint256", "name": "amount", "type": "uint256" }], "name": "purchaseWithToken", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "", "type": "address" }], "name": "purchasedAmounts", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "soldMovo", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "totalMovoForSale", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }, { "inputs": [{ "internalType": "uint256", "name": "newPrice", "type": "uint256" }], "name": "updateMovoPrice", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "uint256", "name": "newSupply", "type": "uint256" }], "name": "updateTotalSupply", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "", "type": "address" }], "name": "vestingStart", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "to", "type": "address" }], "name": "withdrawFunds", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "to", "type": "address" }, { "internalType": "address", "name": "token", "type": "address" }], "name": "withdrawTokens", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "stateMutability": "payable", "type": "receive" }];
+
+        let provider;
+        let signer;
+        let contract;
+
+        const web3Modal = new Web3Modal.default({
+            cacheProvider: false,
+            providerOptions: {
+                walletconnect: {
+                    package: WalletConnectProvider.default,
+                    options: {
+                        infuraId: "989a073eaac84955b2ec366d7755664e"
+                    }
+                }
+            }
+        });
+
+        function showNotification(message, type = "info") {
+            const notification = document.getElementById("notification");
+            const notificationMessage = document.getElementById("notificationMessage");
+            notificationMessage.innerText = message;
+
+            if (type === "error") {
+                notification.className = "fixed bottom-4 right-4 p-4 rounded-lg shadow-lg bg-red-600 text-white";
+            } else if (type === "success") {
+                notification.className = "fixed bottom-4 right-4 p-4 rounded-lg shadow-lg bg-green-600 text-white";
+            } else {
+                notification.className = "fixed bottom-4 right-4 p-4 rounded-lg shadow-lg bg-blue-600 text-white";
+            }
+
+            notification.classList.remove("hidden");
+            setTimeout(() => notification.classList.add("hidden"), 3000);
+        }
+
+        function saveWalletAddress(address) {
+            localStorage.setItem("walletAddress", address);
+        }
+
+        function getWalletAddress() {
+            return localStorage.getItem("walletAddress");
+        }
+
+        function clearWalletAddress() {
+            localStorage.removeItem("walletAddress");
+        }
+
+        async function checkLoginStatus() {
+            const savedWalletAddress = getWalletAddress();
+
+            if (savedWalletAddress) {
+                document.getElementById("walletAddress").innerText = `Địa chỉ ví: ${savedWalletAddress}`;
+                showNotification("Login successful!", "success");
+            }
+        }
+
+        async function connectWallet() {
+    try {
+    
+        const instance = await web3Modal.connect();
+        provider = new ethers.providers.Web3Provider(instance);
+        signer = provider.getSigner();
+
+        const network = await provider.getNetwork();
+        const BSC_CHAIN_ID = 56; 
+
+        if (network.chainId !== BSC_CHAIN_ID) {
+            try {
+                await provider.send("wallet_switchEthereumChain", [{ chainId: ethers.utils.hexlify(BSC_CHAIN_ID) }]);
+                showNotification("Switched to Binance Smart Chain!", "success");
+            } catch (switchError) {
+                if (switchError.code === 4902) {
+                    try {
+                        await provider.send("wallet_addEthereumChain", [
+                            {
+                                chainId: ethers.utils.hexlify(BSC_CHAIN_ID),
+                                chainName: "Binance Smart Chain",
+                                nativeCurrency: {
+                                    name: "BNB",
+                                    symbol: "BNB",
+                                    decimals: 18,
+                                },
+                                rpcUrls: ["https://bsc-dataseed.binance.org/"],
+                                blockExplorerUrls: ["https://bscscan.com"],
+                            },
+                        ]);
+                        showNotification("Binance Smart Chain added to MetaMask!", "success");
+                    } catch (addError) {
+                        console.error("Error adding BSC to MetaMask:", addError);
+                        showNotification("Failed to add Binance Smart Chain to MetaMask!", "error");
+                        return;
+                    }
+                } else {
+                    console.error("Error switching to Binance Smart Chain:", switchError);
+                    showNotification("Please switch to Binance Smart Chain in MetaMask!", "error");
+                    return;
+                }
+            }
+        }
+
+        const walletAddress = await signer.getAddress();
+        document.getElementById("walletAddress").innerText = `Wallet Address: ${walletAddress}`;
+        saveWalletAddress(walletAddress);
+
+        contract = new ethers.Contract(contractAddress, abi, signer);
+
+
+        const connectButton = document.getElementById("connectWallet");
+        connectButton.innerText = "Disconnect Wallet";
+        connectButton.onclick = disconnectWallet;
+
+        showNotification("Wallet connected successfully!", "success");
+
+
+        fetchVestingDetails();
+    } catch (error) {
+        console.error("Wallet Connection Error:", error);
+        showNotification("Wallet connection failed. Please try again!", "error");
+    }
+}
+
+        function disconnectWallet() {
+            web3Modal.clearCachedProvider();
+            provider = null;
+            signer = null;
+            contract = null;
+
+            document.getElementById("walletAddress").innerText = "Wallet Address: Not Connected";
+            const connectButton = document.getElementById("connectWallet");
+            connectButton.innerText = "Connect Wallet";
+            connectButton.onclick = connectWallet;
+
+            showNotification("Wallet Disconnected!", "success");
+        }
+
+        document.getElementById("bnbAmount").addEventListener("change", (event) => {
+            const customContainer = document.getElementById("customBnbContainer");
+            if (event.target.value === "custom") {
+                customContainer.classList.remove("hidden");
+            } else {
+                customContainer.classList.add("hidden");
+            }
+        });
+
+        async function purchaseMovo() {
+            const bnbAmount = document.getElementById("bnbAmount")?.value;
+
+            if (!bnbAmount || bnbAmount <= 0) {
+                showNotification("Please select or enter a valid BNB amount!", "error");
+                return;
+            }
+
+            try {
+                console.log("Checking contract:", contract); // Debug contract
+
+                if (!contract || !window.walletConnected) {
+                    console.log("Wallet is not connected or contract is not initialized.");
+                    showNotification("Wallet is not connected. Displaying the wallet connection modal...", "info");
+
+                    const connected = await connectWallet();
+                    if (!connected || !contract) {
+                        showNotification("Unable to connect wallet. Please try again!", "error");
+                        return;
+                    }
+                }
+
+
+                console.log("Contract has been initialized:", contract);
+
+
+                let bnbValue;
+                try {
+                    bnbValue = ethers.utils.parseEther(bnbAmount);
+                } catch (error) {
+                    showNotification("Invalid BNB amount. Please enter the correct format!", "error");
+                    return;
+                }
+
+                console.log("Sending transaction with BNB amount:", bnbValue.toString());
+
+
+                const tx = await contract.purchaseWithBNB({
+                    value: bnbValue,
+                    gasLimit: ethers.utils.hexlify(300000),
+                });
+
+
+                showNotification("Processing transaction...", "info");
+                await tx.wait();
+
+                // Display notification when the transaction is successful
+                showNotification("Successfully purchased MOVO!", "success");
+                console.log(`Transaction successful! Tx Hash: ${tx.hash}`);
+
+                // Call function to fetch vesting details
+                fetchVestingDetails();
+
+            } catch (error) {
+                console.error("Error purchasing MOVO:", error);
+
+
+                // Display detailed error notifications
+                if (error.code === "UNPREDICTABLE_GAS_LIMIT") {
+                    showNotification("Unable to estimate gas. The transaction might fail!", "error");
+                } else if (error.code === "INSUFFICIENT_FUNDS") {
+                    showNotification("Insufficient BNB to complete the transaction!", "error");
+                } else {
+                    showNotification("Transaction failed! Please try again.", "error");
+                }
+
+            }
+        }
+
+        function logout() {
+            clearWalletAddress();
+            document.getElementById("walletAddress").innerText = "Wallet Address: Not Connected";
+            showNotification("Logged out successfully!", "success");
+        }
+
+
+        document.getElementById("connectWallet").addEventListener("click", connectWallet);
+
+
+        async function purchaseMovo() {
+            let bnbAmount = document.getElementById("bnbAmount").value;
+
+            if (bnbAmount === "custom") {
+                bnbAmount = document.getElementById("customBnbAmount").value;
+            }
+
+            if (!bnbAmount || bnbAmount <= 0) {
+                showNotification("Please select or enter a valid BNB amount!", "error");
+                return;
+            }
+
+
+            try {
+                if (!contract) {
+                    showNotification("Please connect your wallet!", "error");
+                    return;
+                }
+
+                const bnbValue = ethers.utils.parseEther(bnbAmount);
+
+                const tx = await contract.purchaseWithBNB({
+                    value: bnbValue,
+                    gasLimit: ethers.utils.hexlify(300000)
+                });
+
+                showNotification("Processing transaction...", "info");
+                await tx.wait();
+                showNotification("Successfully purchased MOVO!", "success");
+                console.log(`Transaction successful! Tx Hash: ${tx.hash}`);
+
+                // Fetch vesting details from the contract
+                const walletAddress = await signer.getAddress();
+                const vestingInfo = await contract.getUserTokenInfo(walletAddress);
+
+                // Update the information on the interface
+                document.getElementById("totalPurchased").innerText = `${vestingInfo.totalPurchased} MOVO`;
+                document.getElementById("alreadyClaimed").innerText = `${vestingInfo.alreadyClaimed} MOVO`;
+                document.getElementById("remaining").innerText = `${vestingInfo.remaining} MOVO`;
+                const nextClaimDate = new Date(vestingInfo.nextClaimTime * 1000).toLocaleString();
+                document.getElementById("nextClaimTime").innerText = nextClaimDate;
+
+                // Display the vesting information section
+                document.getElementById("vestingInfo").classList.remove("hidden");
+            } catch (error) {
+                console.error("Error purchasing MOVO:", error);
+                // showNotification("Transaction failed!", "error");
+            }
+
+        }
+
+        async function checkLoginStatus() {
+            try {
+                if (!contract) {
+                    console.error("Contract is not initialized. Please connect your wallet!");
+                    return;
+                }
+
+                const walletAddress = await signer.getAddress();
+                console.log(`Checking Presale history for wallet: ${walletAddress}`);
+
+                // Check if the function exists
+                if (typeof contract.getUserTokenInfo !== "function") {
+                    console.error("The `getUserTokenInfo` function does not exist in the ABI.");
+                    return;
+                }
+
+                const vestingInfo = await contract.getUserTokenInfo(walletAddress);
+
+                if (vestingInfo.totalPurchased > 0) {
+                    console.log("Vesting information:", vestingInfo);
+                    // Display information on the interface if data exists
+                } else {
+                    console.log("This wallet has not participated in the Presale.");
+                }
+            } catch (error) {
+                console.error("Error checking Presale history:", error);
+            }
+        }
+
+        async function fetchVestingDetails() {
+            try {
+                if (!contract) {
+                    showNotification("Contract is not initialized. Please connect your wallet!", "error");
+                    return;
+                }
+
+                const walletAddress = await signer.getAddress();
+                console.log(`Fetching vesting details for wallet: ${walletAddress}`);
+
+                const vestingInfo = await contract.getUserTokenInfo(walletAddress);
+                const totalPurchased = ethers.utils.formatUnits(vestingInfo.totalPurchased, 18);
+                const claimed = ethers.utils.formatUnits(vestingInfo.alreadyClaimed, 18);
+                const remaining = ethers.utils.formatUnits(vestingInfo.remaining, 18);
+                const nextClaimTime = vestingInfo.nextClaimTime.toNumber();
+                const tgeMovo = totalPurchased * 0.2;
+                const vestingMovo = totalPurchased * 0.8;
+
+                if (nextClaimTime <= 0) {
+                    showNotification("Vesting has not started or information is invalid!", "info");
+                    console.error("Invalid vesting start value:", nextClaimTime);
+                    return;
+                }
+
+                const vestingStartDate = new Date(nextClaimTime * 1000).toISOString();
+                const scheduleList = document.getElementById("vestingSchedule");
+
+                // Safely update DOM elements
+                const updateElement = (id, value) => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.innerText = value;
+                    } else {
+                        console.error(`Element with ID '${id}' not found.`);
+                    }
+                };
+
+                updateElement("vestingWalletAddress", walletAddress);
+                updateElement("totalPurchased", `${totalPurchased} MOVO`);
+                updateElement("alreadyClaimed", `${claimed} MOVO`);
+                updateElement("tgeMovo", `${tgeMovo.toFixed(8)} MOVO`);
+                updateElement("vestingMovo", `${vestingMovo.toFixed(8)} MOVO`);
+                updateElement("remaining", `${remaining} MOVO`);
+                updateElement("vestingStartDate", vestingStartDate);
+
+                if (scheduleList) {
+                    scheduleList.innerHTML = ""; // Clear existing entries
+                    for (let i = 1; i <= 6; i++) {
+                        const releaseDate = new Date(nextClaimTime * 1000 + i * 30 * 24 * 60 * 60 * 1000).toISOString();
+                        const listItem = document.createElement("li");
+                        listItem.innerText = `Cycle ${i}: ${(vestingMovo / 6).toFixed(8)} MOVO - Release Date: ${releaseDate}`;
+                        scheduleList.appendChild(listItem);
+                    }
+                } else {
+                    console.error("Element with ID 'vestingSchedule' not found.");
+                }
+
+                document.getElementById("vestingInfo").classList.remove("hidden");
+            } catch (error) {
+                console.error("Error fetching vesting details:", error);
+            }
+        }
+
+        async function claimTokens() {
+    try {
+        // Fetch vesting info to determine eligibility
+        const walletAddress = await signer.getAddress();
+        const vestingInfo = await contract.getUserTokenInfo(walletAddress);
+        const nextClaimTime = vestingInfo.nextClaimTime.toNumber();
+        const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
+
+        // Check if claim is available
+        if (currentTime < nextClaimTime) {
+            const nextClaimDate = new Date(nextClaimTime * 1000).toISOString();
+            console.log(`No MOVO to claim. Next vesting date: ${nextClaimDate}`);
+            showNotification(`Claim is not yet available. Next vesting date: ${nextClaimDate} (UTC +0)`, "info");
+            return; // Exit the function to avoid triggering MetaMask
+        }
+
+        // Proceed with claim if eligible
+        const tx = await contract.claim({
+            gasLimit: ethers.utils.hexlify(300000),
+        });
+        await tx.wait();
+        showNotification("Claim successful!", "success");
+        fetchVestingDetails(); // Refresh details
+    } catch (error) {
+        console.error("Error during claim:", error);
+        showNotification("Claim failed! Please try again.", "error");
+    }
+}
+
+        window.onload = checkLoginStatus;
+    </script>
+    
+
+
+</body></html>
